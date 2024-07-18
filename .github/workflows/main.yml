@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_VAR_aws_access_key: ${{ AKIAYLPBEYLL4BDMILNS }}
+      TF_VAR_aws_secret_key: ${{ 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 }}
       AWS_DEFAULT_REGION: 'us-east-1'
 
     steps:
