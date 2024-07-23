@@ -10,15 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-         
     - name: Checkout code
       uses: actions/checkout@v2
       
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{secrets.AWS_ACCESS_ID}}
-        aws-secret-access-key: ${{secrets.AWS_ACCESS_KEY}}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_ACCESS_KEY }}
         aws-region: us-east-1
 
     - name: Set up Terraform
@@ -30,8 +29,59 @@ jobs:
 
     - name: Apply Terraform
       working-directory: ./terraform
+      id: terraform_apply
       run: terraform apply -auto-approve
 
-    - name: Post Apply Action
-      if: failure()
-      run: echo "Terraform apply failed"
+    - name: Send Failure Email
+      if: ${{ failure() }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.SMTP_SERVER }}
+        server_port: ${{ secrets.SMTP_PORT }}
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        to: ${{ secrets.RECIPIENT_EMAIL }}
+        from: ${{ secrets.SENDER_EMAIL }}
+        subject: 'Terraform Apply Failed'
+        body: |
+          Hello,
+
+          The Terraform apply operation has failed.
+
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Repository: ${{ github.repository }}
+          Action: ${{ github.event_name }}
+          Actor: ${{ github.actor }}
+
+          View the details of the failure [here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+          Regards,
+          Kundan Kumar Yadav
+
+    - name: Send Success Email
+      if: ${{ success() }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.SMTP_SERVER }}
+        server_port: ${{ secrets.SMTP_PORT }}
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        to: ${{ secrets.RECIPIENT_EMAIL }}
+        from: ${{ secrets.SENDER_EMAIL }}
+        subject: 'Terraform Apply Success'
+        body: |
+          Hello,
+
+          The Terraform apply operation was successful.
+
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Repository: ${{ github.repository }}
+          Action: ${{ github.event_name }}
+          Actor: ${{ github.actor }}
+
+          View the details of the deployment [here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+          Regards,
+          Kundan Kumar Yadav
